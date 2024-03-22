@@ -20,13 +20,6 @@ public class Main {
         }
         System.out.println("--------");
 
-        //FOR TESTING PURPOSES
-//        args = new String[3];
-//        args[0] = "C:\\Users\\treim\\IdeaProjects\\DayTrading\\Historical_Data_Formatting\\StockExcelExcelMergerTest";
-//        args[1] = "C:\\Users\\treim\\IdeaProjects\\DayTrading\\Historical_Data_Formatting\\StockExcelExcelMergerTest\\organized_EMINI_3_23_2009_3_15_2024.csv";
-//        args[2] = "C:\\Users\\treim\\IdeaProjects\\DayTrading\\Historical_Data_Formatting\\StockExcelExcelMergerTest\\ES.csv";
-        //~~~~
-
         // the first arg will always be the path that we want to send the result to
         if (args.length > 0) {
             for (int i = 1; i < args.length; i++) {
