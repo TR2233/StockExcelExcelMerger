@@ -1,15 +1,16 @@
-
 import com.opencsv.CSVWriter;
 
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class Main {
+    private static final DateTimeFormatter dateTimeFormatter1 = DateTimeFormatter.ofPattern("M/d/yyyy H:m:s");
+    private static final DateTimeFormatter dateTimeFormatter2 = DateTimeFormatter.ofPattern("M/d/yyyy H:m");
+
     public static void main(String[] args) {
 
         List<List<String>> dataToSort = new ArrayList<>();
@@ -30,8 +31,8 @@ public class Main {
             // Create the output file path and file name
             // the first argument of args must be the file we want the final output to go in!!!
             String ticker = sortedData.get(0).get(0);
-            String startDate = sortedData.get(0).get(1).split(" ")[0].replace("/", "_");
-            String endDate = sortedData.get(sortedData.size() - 1).get(1).split(" ")[0].replace("/", "_");
+            String startDate = getStartDate(sortedData);
+            String endDate = getEndDate(sortedData);
             StringJoiner stringJoiner = new StringJoiner("_");
             stringJoiner.add(ticker).add(startDate).add(endDate);
             arrayToCSV(args[0] + "\\" + stringJoiner + ".csv", sortedData);
@@ -60,41 +61,53 @@ public class Main {
     }
 
     private static void sortAndRemoveDuplicates(List<List<String>> dataToSort, List<List<String>> sortedData) {
-        final DateFormat df = new SimpleDateFormat("MM/dd/yyyy HH:mm"); //we will never need seconds, ss
 
         //sort the entire list
-        dataToSort.sort(new Comparator<>() {
-            Date date1, date2;
-            @Override
-            public int compare(List<String> entry1, List<String> entry2) {
-                try {
-                    date1 = df.parse(entry1.get(1));
-                    date2 = df.parse(entry2.get(1));
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
-                }
-                return date1.compareTo(date2);
-            }
+        dataToSort.sort((entry1, entry2) -> {
+            LocalDateTime date1 = entry1.get(1).contains("T") ? LocalDateTime.parse(entry1.get(1))
+                    : getUnusualParsedLocalDateTime(entry1.get(1));
+            LocalDateTime date2 = entry2.get(1).contains("T") ? LocalDateTime.parse(entry2.get(1))
+                    : getUnusualParsedLocalDateTime(entry2.get(1));
+            return date1.compareTo(date2);
         });
 
+
         //get rid of duplicates
-        for (int i = 0; i < dataToSort.size()-1; i++) {
-            Date date1, date2;
+        for (int i = 0; i < dataToSort.size() - 1; i++) {
+            LocalDateTime date1, date2;
             if (sortedData.isEmpty()) {
                 sortedData.add(dataToSort.get(i));
             } else {
-                try {
-                    date1 = df.parse(dataToSort.get(i).get(1));
-                    date2 = df.parse(dataToSort.get(i+1).get(1));
-                    if (date1.compareTo(date2) != 0) {
-                        sortedData.add(dataToSort.get(i));
-                    }
-                } catch (ParseException e) {
-                    throw new RuntimeException(e);
+                date1 = dataToSort.get(i).get(1).contains("T") ? LocalDateTime.parse(dataToSort.get(i).get(1))
+                        : getUnusualParsedLocalDateTime(dataToSort.get(i).get(1));
+                date2 = dataToSort.get(i + 1).get(1).contains("T") ? LocalDateTime.parse(dataToSort.get(i + 1).get(1))
+                        : getUnusualParsedLocalDateTime(dataToSort.get(i + 1).get(1));
+                if (!date1.equals(date2)) {
+                    sortedData.add(dataToSort.get(i));
                 }
             }
         }
         sortedData.add(dataToSort.get(dataToSort.size() - 1)); // we need the last entry no matter what
+    }
+
+    private static LocalDateTime getUnusualParsedLocalDateTime(String date) {
+        try {
+            return LocalDateTime.parse(date, dateTimeFormatter1);
+        } catch (Exception e) {
+            return LocalDateTime.parse(date, dateTimeFormatter2);
+        }
+    }
+
+    private static String getEndDate(List<List<String>> sortedData) {
+        String stringDate = sortedData.get(sortedData.size() - 1).get(1);
+        LocalDateTime localDateTime = stringDate.contains("T") ? LocalDateTime.parse(stringDate) : getUnusualParsedLocalDateTime(stringDate);
+        return localDateTime.toLocalDate().toString().replace("-", "_");
+    }
+
+    private static String getStartDate(List<List<String>> sortedData) {
+        String stringDate = sortedData.get(0).get(1);
+        LocalDateTime localDateTime = stringDate.contains("T") ? LocalDateTime.parse(stringDate) : getUnusualParsedLocalDateTime(stringDate);
+        return localDateTime.toLocalDate().toString().replace("-", "_");
     }
 
     private static void csvToArray(String path, List<List<String>> filedata) {

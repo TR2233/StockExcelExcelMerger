@@ -3,6 +3,8 @@ import org.junit.Test;
 import java.text.DateFormat;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.*;
 
 public class MainTest {
@@ -56,6 +58,18 @@ public class MainTest {
                 sortedData.add(dataToSort.get(i));
             }
         }
+    }
+
+    @Test
+    public void localDateTimeParseTest() {
+        LocalDateTime now = LocalDateTime.now();
+//        final DateFormat df = new SimpleDateFormat("yyyy-MM-ddTHH:mm"); //we will never need seconds, ss
+        LocalDateTime test = LocalDateTime.parse("3/23/2009 9:30", DateTimeFormatter.ofPattern("M/d/yyyy H:m"));
+        LocalDateTime test2 = LocalDateTime.parse("2024-12-16T00:00");
+        System.out.println();
+
+
+
     }
 
 }
